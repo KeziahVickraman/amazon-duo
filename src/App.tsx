@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { SlidersHorizontal, Search, ChevronLeft, ChevronRight, X, Check } from 'lucide-react';
+import { SlidersHorizontal, Search, ChevronLeft, ChevronRight, X, Check, CheckCircle2 } from 'lucide-react';
 import { PRODUCTS, RELATED_SEARCHES, Product } from './data/products';
 import { AmazonHeader } from './components/AmazonHeader';
 import { FilterSidebar, FilterState } from './components/FilterSidebar';
@@ -51,6 +51,12 @@ export default function App() {
 
   // Cart State
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [oneClickOrder, setOneClickOrder] = useState<{
+    orderNumber: string;
+    product: Product;
+    colorName: string;
+    image: string;
+  } | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -87,6 +93,19 @@ export default function App() {
   ) => {
     handleAddToCart(product, colorName, image, quantity);
     setCartOpen(true);
+  };
+
+  const handleOneClickBuy = (
+    product: Product,
+    colorName: string,
+    image: string
+  ) => {
+    const orderNumber = `408-${Math.floor(1000000 + Math.random() * 8999999)}-${Math.floor(
+      1000000 + Math.random() * 8999999
+    )}`;
+    handleOrderPlaced(orderNumber, product.price, 1);
+    setOneClickOrder({ orderNumber, product, colorName, image });
+    showToast(`1-Click order #${orderNumber} placed`);
   };
 
   const handleUpdateCartQty = (key: string, delta: number) => {
@@ -467,6 +486,7 @@ export default function App() {
                     setSelectedProduct({ product: p, colorIdx: idx })
                   }
                   onAddToCart={handleAddToCart}
+                  onOneClickBuy={handleOneClickBuy}
                 />
               ))}
             </div>
@@ -644,6 +664,94 @@ export default function App() {
           showToast('Signed out of Amazon.sg');
         }}
       />
+
+      {/* 1-Click Order Confirmation Modal */}
+      {oneClickOrder && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          onClick={() => setOneClickOrder(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="1-Click Order Confirmed"
+        >
+          <div
+            className="w-full max-w-[440px] bg-white rounded-lg shadow-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-[#f0f2f2] px-5 py-3.5 border-b border-[#d5d9d9] flex items-center justify-between">
+              <div className="flex items-center gap-2 text-[#067d62] font-display font-bold text-[15px]">
+                <CheckCircle2 className="w-5 h-5" />
+                <span>1-Click Order Confirmed</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOneClickOrder(null)}
+                aria-label="Close confirmation"
+                className="p-1 rounded hover:bg-gray-200 cursor-pointer"
+              >
+                <X className="w-4 h-4 text-[#565959]" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-[13px]">
+              <div className="flex gap-3.5">
+                <div className="w-16 h-16 bg-[#f7f7f7] border border-[#e7e7e7] rounded p-1.5 shrink-0">
+                  <img
+                    src={oneClickOrder.image}
+                    alt={oneClickOrder.product.title}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-medium text-[#0f1111] line-clamp-2">
+                    {oneClickOrder.product.title}
+                  </div>
+                  <div className="text-[12px] text-[#565959] mt-0.5">
+                    Colour: {oneClickOrder.colorName} · Qty: 1
+                  </div>
+                  <div className="font-bold text-[15px] text-[#0f1111] mt-1 tabular-nums">
+                    S${oneClickOrder.product.price.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-md bg-[#f7fafa] border border-[#d5d9d9] space-y-1 text-[12px]">
+                <div className="flex justify-between">
+                  <span className="text-[#565959]">Order ID</span>
+                  <span className="font-mono font-medium">#{oneClickOrder.orderNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#565959]">Delivering to</span>
+                  <span className="font-medium">
+                    {locationLabel} {postalCode}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOneClickOrder(null);
+                    setAccountModalMode('orders');
+                  }}
+                  className="flex-1 py-2 px-4 rounded-full border border-[#d5d9d9] hover:bg-[#f7fafa] font-medium cursor-pointer"
+                >
+                  View Orders
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOneClickOrder(null)}
+                  className="flex-1 py-2 px-4 rounded-full bg-[#ffd814] hover:bg-[#f7ca00] border border-[#fcd200] font-medium cursor-pointer"
+                >
+                  Continue shopping
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Subtle Bottom Feedback Toast */}
       {toastMessage && (

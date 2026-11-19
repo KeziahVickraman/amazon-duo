@@ -13,6 +13,7 @@ interface ProductCardProps {
   postalCode: string;
   onSelectProduct: (product: Product, selectedColorIdx: number) => void;
   onAddToCart: (product: Product, selectedColorName: string, selectedImage: string) => void;
+  onOneClickBuy: (product: Product, selectedColorName: string, selectedImage: string) => void;
 }
 
 export function ProductCard({
@@ -20,10 +21,12 @@ export function ProductCard({
   postalCode,
   onSelectProduct,
   onAddToCart,
+  onOneClickBuy,
 }: ProductCardProps) {
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [imgError, setImgError] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+  const [justOrdered, setJustOrdered] = useState(false);
 
   const activeVariant = product.colors[selectedColorIdx] || product.colors[0];
   const { whole, cents } = formatSgdPriceParts(product.price);
@@ -34,6 +37,13 @@ export function ProductCard({
     onAddToCart(product, activeVariant.name, activeVariant.image);
     setJustAdded(true);
     window.setTimeout(() => setJustAdded(false), 1400);
+  };
+
+  const handleOneClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onOneClickBuy(product, activeVariant.name, activeVariant.image);
+    setJustOrdered(true);
+    window.setTimeout(() => setJustOrdered(false), 1600);
   };
 
   return (
@@ -192,12 +202,12 @@ export function ProductCard({
             </div>
           </div>
 
-          {/* Add to Cart Button */}
-          <div className="mt-3">
+          {/* Add to Cart & 1-Click Buy Buttons */}
+          <div className="mt-3 flex flex-col gap-1.5">
             <button
               type="button"
               onClick={handleAdd}
-              className={`inline-flex items-center justify-center gap-1.5 px-4 py-1.5 text-[13px] font-medium rounded-full border transition-colors cursor-pointer whitespace-nowrap ${
+              className={`w-full inline-flex items-center justify-center gap-1.5 px-4 py-1.5 text-[13px] font-medium rounded-full border transition-colors cursor-pointer whitespace-nowrap ${
                 justAdded
                   ? 'bg-[#e7f4e4] border-[#067d62] text-[#067d62]'
                   : 'bg-[#ffd814] hover:bg-[#f7ca00] active:bg-[#f0b800] border-[#fcd200] text-[#0f1111]'
@@ -210,6 +220,25 @@ export function ProductCard({
                 </>
               ) : (
                 <span>Add to cart</span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleOneClick}
+              className={`w-full inline-flex items-center justify-center gap-1.5 px-4 py-1.5 text-[13px] font-medium rounded-full border transition-colors cursor-pointer whitespace-nowrap ${
+                justOrdered
+                  ? 'bg-[#e7f4e4] border-[#067d62] text-[#067d62]'
+                  : 'bg-[#ffa41c] hover:bg-[#fa8900] active:bg-[#e87b00] border-[#ff8f00] text-[#0f1111]'
+              }`}
+            >
+              {justOrdered ? (
+                <>
+                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>1-Click ordered</span>
+                </>
+              ) : (
+                <span>Buy now with 1-Click</span>
               )}
             </button>
           </div>
