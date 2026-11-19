@@ -1,0 +1,6 @@
+{
+  "name": "Amazon.sg: iphone duo case",
+  "description": "Amazon Singapore search results page replica for iphone duo case with live filtering, Prime SG delivery, variant swatches, product detail modal, and shopping cart.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
